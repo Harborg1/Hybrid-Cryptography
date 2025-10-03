@@ -66,7 +66,69 @@ Expected output:
 Description:    Ubuntu 24.04.x LTS
 Codename:       noble
 ```
+## Installing OpenSSL 3.5.0 from Source (Vagrant Ubuntu)
 
+Sometimes you may need the latest OpenSSL version instead of the one shipped with Ubuntu.  
+This section shows how to build and install **OpenSSL 3.5.0** from source and generate a certificate using it.
+
+---
+
+### 1. Update and install dependencies
+
+```bash
+sudo apt update
+sudo apt install -y build-essential checkinstall zlib1g-dev wget
+```
+
+---
+
+### 2. Download and extract OpenSSL 3.5.0
+
+```bash
+wget https://www.openssl.org/source/openssl-3.5.0.tar.gz
+tar -xvzf openssl-3.5.0.tar.gz
+cd openssl-3.5.0
+```
+
+---
+
+### 3. Configure the build (installing under `/opt/openssl-3.5`)
+
+```bash
+./Configure --prefix=/opt/openssl-3.5 --openssldir=/opt/openssl-3.5 shared zlib
+```
+
+---
+
+### 4. Build and install
+
+```bash
+make -j$(nproc)
+sudo make install
+```
+
+---
+
+### 5. Add OpenSSL 3.5.0 to PATH and library path permanently
+
+```bash
+echo 'export PATH=/opt/openssl-3.5/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/opt/openssl-3.5/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### 6. Verify installation
+```bash
+LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 /opt/openssl-3.5/bin/openssl version
+```
+
+Expected output:
+
+```bash
+OpenSSL 3.5.0  8 Apr 2025 (Library: OpenSSL 3.5.0  8 Apr 2025)
+```
 ---
 
 ## TLS Setup Instructions
@@ -92,7 +154,11 @@ cd /vagrant
 Generate a self-signed RSA key and certificate for the server:
 
 ```bash
-openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
+  /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
+  -keyout key.pem -out cert.pem \
+  -days 365 -nodes \
+  -subj "/CN=localhost"
 ```
 
 This creates:  
@@ -105,8 +171,17 @@ This creates:
 Compile the server and client:
 
 ```bash
-gcc server.c -o server -lssl -lcrypto
-gcc client.c -o client -lssl -lcrypto
+gcc server.c -o server \
+  -I/opt/openssl-3.5/include \
+  -L/opt/openssl-3.5/lib64 \
+  -lssl -lcrypto
+
+
+gcc server.c -o client \
+  -I/opt/openssl-3.5/include \
+  -L/opt/openssl-3.5/lib64 \
+  -lssl -lcrypto
+
 ```
 
 ---
