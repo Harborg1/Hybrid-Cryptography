@@ -1,17 +1,37 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/provider.h>   // for OSSL_PROVIDER_load
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
 
-int main() {
+int main(int argc, char **argv) {
+    int use_pq = 0;
+    if (argc > 1 && strcmp(argv[1], "--hyb") == 0) {
+        use_pq = 1;
+    }
+
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
 
+    // Load providers
+    OSSL_PROVIDER_load(NULL, "default");
+    if (use_pq) {
+        if (!OSSL_PROVIDER_load(NULL, "oqsprovider")) {
+            fprintf(stderr, "Failed to load oqsprovider\n");
+            return 1;
+        }
+    }
+
     const SSL_METHOD *method = TLS_client_method();
     SSL_CTX *ctx = SSL_CTX_new(method);
+
+    // Optional: select PQ group when in PQ mode
+    if (use_pq) {
+        SSL_CTX_set1_groups_list(ctx, "p384_mlkem768");
+    }
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr;
@@ -37,6 +57,7 @@ int main() {
         SSL_read(ssl, buffer, sizeof(buffer));
         printf("Received: %s\n", buffer);
     }
+    
 
     SSL_free(ssl);
     close(sockfd);
