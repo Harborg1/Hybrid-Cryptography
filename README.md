@@ -69,8 +69,6 @@ Codename:       noble
 ## Installing OpenSSL 3.5.0 from Source (Vagrant Ubuntu)
 
 Sometimes you may need the latest OpenSSL version instead of the one shipped with Ubuntu.  
-This section shows how to build and install **OpenSSL 3.5.0** from source and generate a certificate using it.
-
 ---
 
 ### 1. Update and install dependencies
