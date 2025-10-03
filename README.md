@@ -119,7 +119,11 @@ source ~/.bashrc
 openssl version
 ```
 Expected output:
+
+```makefile
 OpenSSL 3.5.0 8 Apr 2025 (Library: OpenSSL 3.5.0 8 Apr 2025)
+```
+
 
 ---
 
@@ -158,15 +162,23 @@ gcc client.c -o client \
 Open **two terminals**:
 
 **Terminal 1 (Server):**
+Navigate to the project folder and run
 ```bash
 vagrant ssh
+```
+Then run the server.
+```bash
 cd /vagrant
 ./server
 ```
 
 **Terminal 2 (Client):**
+Navigate to the project folder and run
 ```bash
 vagrant ssh
+```
+Then run the client.
+```bash
 cd /vagrant
 ./client
 ```
