@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     const SSL_METHOD *method = TLS_client_method();
     SSL_CTX *ctx = SSL_CTX_new(method);
 
-    // Optional: select PQ group when in PQ mode
+    // Optional: select hybrid group when in hybrid mode
     if (use_pq) {
         SSL_CTX_set1_groups_list(ctx, "p384_mlkem768");
     }

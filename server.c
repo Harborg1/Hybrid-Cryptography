@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     const SSL_METHOD *method = TLS_server_method();
     SSL_CTX *ctx = SSL_CTX_new(method);
 
-    // Use classical certs by default, PQ if --pq was given
+    // Use classical certs by default, hybrid if --hyb was given
     if (use_pq) {
         SSL_CTX_use_certificate_file(ctx, "mldsa.crt", SSL_FILETYPE_PEM);
         SSL_CTX_use_PrivateKey_file(ctx, "mldsa.key", SSL_FILETYPE_PEM);
