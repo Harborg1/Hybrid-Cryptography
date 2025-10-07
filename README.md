@@ -275,7 +275,6 @@ providers = provider_sect
 
 [provider_sect]
 default = default_sect
-oqsprovider = oqsprovider_sect
 
 [default_sect]
 activate = 1
@@ -283,6 +282,7 @@ activate = 1
 [oqsprovider_sect]
 activate = 1
 module = /opt/openssl-3.5/lib64/ossl-modules/oqsprovider.so
+
 ```
 
 #### 5.1 Verify
@@ -297,11 +297,22 @@ Providers:
     name: OpenSSL Default Provider
     version: 3.5.0
     status: active
-  oqsprovider
+```
+
+```bash
+openssl list -providers | grep oqs
+```
+Expected output:
+```makefile
+Providers:
+ oqsprovider
     name: OpenSSL OQS Provider
     version: 0.10.1-dev
     status: active
 ```
+
+
+
 
 
 
