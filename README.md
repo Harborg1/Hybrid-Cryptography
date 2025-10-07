@@ -311,9 +311,11 @@ Providers:
     status: active
 ```
 
+#### 6.  See the public key algorithms from the OQS provider
 
-
-
+```bash
+openssl list -public-key-algorithms -provider oqsprovider
+```
 
 
 
