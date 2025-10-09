@@ -14,7 +14,11 @@ The setup enables both classical and hybrid cryptography through the OQS provide
 
 ## VM Setup Instructions
 
-### 1. Start VM with Ubuntu 22.04 (jammy64)
+### 1. Clone the github repository.
+
+Clone the github repository and navigate to the project folder.
+
+### 2. Initialize the VM with Ubuntu 22.04 (jammy64)
 In your project folder (where the `Vagrantfile` will be created):
 
 ```bash
@@ -24,7 +28,7 @@ vagrant ssh
 ```
 ---
 
-### 2. Update the System (inside the VM)
+### 3. Update the System (inside the VM)
 
 ```bash
 sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y
@@ -32,7 +36,7 @@ sudo apt update && sudo apt upgrade -y && sudo apt dist-upgrade -y
 
 ---
 
-### 3. Install release-manager
+### 4. Install release-manager
 
 ```bash
 sudo apt install update-manager-core -y
@@ -40,7 +44,7 @@ sudo apt install update-manager-core -y
 
 ---
 
-### 4. Upgrade to Ubuntu 24.04.3
+### 5. Upgrade to Ubuntu 24.04.3
 
 ```bash
 sudo do-release-upgrade
@@ -60,7 +64,7 @@ Login to the VM
 vagrant ssh
 ```
 
-### 5. Check Ubuntu version
+### 6. Check Ubuntu version
 
 ```bash
 lsb_release -a
