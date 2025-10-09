@@ -123,74 +123,6 @@ Expected output:
 ```makefile
 OpenSSL 3.5.0 8 Apr 2025 (Library: OpenSSL 3.5.0 8 Apr 2025)
 ```
-
-
----
-
-## Connect client and server
-
-### 1. Navigate to vagrant folder
-
-```bash
-cd /vagrant
-```
----
-### 2. Generate RSA key
-```bash
-   LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
-  /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
-  -keyout key.pem -out cert.pem \
-  -days 365 -nodes \
-  -subj "/CN=localhost"
-```
----
-### 4. Build the Code
-Compile the server.c and client.c files inside the vagrant folder:
-```bash
-gcc server.c -o server \
-  -I/opt/openssl-3.5/include \
-  -L/opt/openssl-3.5/lib64 \
-  -lssl -lcrypto
-
-gcc client.c -o client \
-  -I/opt/openssl-3.5/include \
-  -L/opt/openssl-3.5/lib64 \
-  -lssl -lcrypto
-```
----
-### 5. Run the Programs
-Open **two terminals**:
-
-**Terminal 1 (Server):**
-Navigate to the project folder and run
-```bash
-vagrant ssh
-```
-Then run the server.
-```bash
-cd /vagrant
-./server
-```
-
-**Terminal 2 (Client):**
-Navigate to the project folder and run
-```bash
-vagrant ssh
-```
-Then run the client.
-```bash
-cd /vagrant
-./client
-```
-
----
-### 6. Testing the Connection
-- First run the server. It will wait for a client connection.  
-- Then run the client. It will establish a TLS 1.3 connection with the server.  
-- Both programs should print messages showing that the TLS handshake succeeded.
-- In the client terminal,  "Hello from server" will be printed.
-- In the server terminal, "Hello from client" will be printed.
-
 ---
 
 ## Hybrid cryptography setup
@@ -288,24 +220,17 @@ module = /opt/openssl-3.5/lib64/ossl-modules/oqsprovider.so
 #### 5.1 Verify
 Check the providers.
 ```bash
-openssl list -providers
+openssl list -providers -provider oqsprovider
 ```
 Expected output:
 ```makefile
+vagrant@ubuntu-jammy:~$ openssl list -providers -provider oqsprovider
 Providers:
   default
     name: OpenSSL Default Provider
     version: 3.5.0
     status: active
-```
-
-```bash
-openssl list -providers | grep oqs
-```
-Expected output:
-```makefile
-Providers:
- oqsprovider
+  oqsprovider
     name: OpenSSL OQS Provider
     version: 0.10.1-dev
     status: active
@@ -316,6 +241,80 @@ Providers:
 ```bash
 openssl list -public-key-algorithms -provider oqsprovider
 ```
+
+
+## Connect client and server
+
+### 1. Navigate to vagrant folder
+
+```bash
+cd /vagrant
+```
+---
+### 2. Generate RSA key
+```bash
+   LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
+  /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
+  -keyout key.pem -out cert.pem \
+  -days 365 -nodes \
+  -subj "/CN=localhost"
+```
+---
+### 4. Build the Code
+Compile the server.c and client.c files inside the vagrant folder:
+```bash
+gcc server.c -o server \
+  -I/opt/openssl-3.5/include \
+  -L/opt/openssl-3.5/lib64 \
+  -lssl -lcrypto
+
+gcc client.c -o client \
+  -I/opt/openssl-3.5/include \
+  -L/opt/openssl-3.5/lib64 \
+  -lssl -lcrypto
+```
+### 5. Verify that the code has compiled
+
+```bash
+ls
+```
+You should see that the server.c and client.c files are in the folder.
+
+---
+### 5. Run the Programs
+Open **two terminals**:
+
+**Terminal 1 (Server):**
+Navigate to the project folder and run
+```bash
+vagrant ssh
+```
+Then run the server.
+```bash
+cd /vagrant
+./server
+```
+
+**Terminal 2 (Client):**
+Navigate to the project folder and run
+```bash
+vagrant ssh
+```
+Then run the client.
+```bash
+cd /vagrant
+./client
+```
+
+---
+### 6. Testing the Connection
+- First run the server. It will wait for a client connection.  
+- Then run the client. It will establish a TLS 1.3 connection with the server.  
+- Both programs should print messages showing that the TLS handshake succeeded.
+- In the client terminal,  "Hello from server" will be printed.
+- In the server terminal, "Hello from client" will be printed.
+
+---
 
 
 
