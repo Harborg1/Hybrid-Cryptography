@@ -40,18 +40,18 @@ int main(int argc, char **argv) {
     // Restrict groups depending on mode
     if (!use_hyb) {
         // Classical mode: allow only standard elliptic curves
-        if (!SSL_CTX_set1_groups_list(ctx, "X25519:P-256:P-384")) {
+        if (!SSL_CTX_set1_groups_list(ctx, "P-384")) {
             fprintf(stderr, "Failed to restrict to classical groups\n");
             return 1;
         }
-        printf("Classical mode: restricted to X25519, P-256, P-384\n");
+        printf("Classical mode: restricted to P-384\n");
     } else {
         // Hybrid mode: enforce post-quantum hybrid group
-        if (!SSL_CTX_set1_groups_list(ctx, "p384_mlkem768")) {
-            fprintf(stderr, "Failed to set hybrid group p384_mlkem768\n");
+        if (!SSL_CTX_set1_groups_list(ctx, "p384_mldsa65")) {
+            fprintf(stderr, "Failed to set hybrid group p384_mldsa65\n");
             return 1;
         }
-        printf("Hybrid group set: p384_mlkem768\n");
+        printf("Hybrid group set: p384_mldsa65\n");
     }
 
     // Create and connect socket
