@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
             use_hyb = 1;
         }
         port_no = atoi(argv[1]);
+
     }
 
     SSL_library_init();
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
     const SSL_METHOD *method = TLS_client_method();
     SSL_CTX *ctx = SSL_CTX_new(method);
 
-    // Optional: select PQ group when in PQ mode
+    // Optional: select hyb group when in hyb mode
     if (use_hyb) {
         SSL_CTX_set1_groups_list(ctx, "p384_mlkem768");
     }

@@ -49,12 +49,12 @@ int main(int argc, char **argv) {
     // Restrict groups based on mode
     if (!use_hyb) {
         // Classical mode: allow only standard elliptic curves
-        if (!SSL_CTX_set1_groups_list(ctx, "X25519:P-256:P-384")) {
+        if (!SSL_CTX_set1_groups_list(ctx, "P-384")) {
             fprintf(stderr, "Failed to restrict to classical groups\n");
             return 1;
         }
 
-        printf("Classical mode: restricted to X25519, P-256, P-384\n");
+        printf("Classical mode: restricted P-384\n");
     } else {
         // Hybrid mode: enforce PQ-hybrid group
         if (!SSL_CTX_set1_groups_list(ctx, "p384_mlkem768")) {
@@ -63,7 +63,6 @@ int main(int argc, char **argv) {
         }
         printf("Hybrid group set: p384_mlkem768\n");
     }
-
     // Load certificate and private key (same files for both modes)
     if (SSL_CTX_use_certificate_file(ctx, "cert.pem", SSL_FILETYPE_PEM) <= 0 ||
         SSL_CTX_use_PrivateKey_file(ctx, "key.pem", SSL_FILETYPE_PEM) <= 0) {
@@ -113,7 +112,7 @@ int main(int argc, char **argv) {
     int handshake_result = SSL_accept(ssl);
 
     clock_t end = clock();
-
+    
     if (handshake_result <= 0) {
         ERR_print_errors_fp(stderr);
     } else {
@@ -139,7 +138,6 @@ int main(int argc, char **argv) {
     printf("Received: %s\n", buffer);
     SSL_write(ssl, "Hello from server", 17);
 
-    
     printf("Press ENTER to close TLS connection (can read socket statistics before hand)");
     // call "sudo ss -tinp '( sport = :1436 )'" in terinal to read socket data where 1436 is the port number
     getchar(); 
