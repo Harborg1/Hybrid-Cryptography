@@ -8,8 +8,18 @@
 
 int main(int argc, char **argv) {
     int use_hyb = 0;
-    if (argc > 1 && strcmp(argv[1], "--hyb") == 0) {
-        use_hyb = 1;
+    int port_no = 5003;
+    if (argc == 2) {
+        if (strcmp(argv[1], "--hyb") == 0) {
+            use_hyb = 1;
+        } else {
+            port_no = atoi(argv[1]);;
+        }
+    } else if (argc == 3) {
+        if (strcmp(argv[2], "--hyb") == 0) {
+            use_hyb = 1;
+        }
+        port_no = atoi(argv[1]);
     }
 
     SSL_library_init();
@@ -57,7 +67,6 @@ int main(int argc, char **argv) {
         SSL_read(ssl, buffer, sizeof(buffer));
         printf("Received: %s\n", buffer);
     }
-
 
     SSL_free(ssl);
     close(sockfd);
