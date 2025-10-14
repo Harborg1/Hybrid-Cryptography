@@ -7,19 +7,18 @@
 #include <stdio.h>
 
 int main(int argc, char **argv) {
-    int use_pq = 0;
-    if (argc > 1 && strcmp(argv[1], "--pq") == 0) {
-        use_pq = 1;
+    int use_hyb = 0;
+    if (argc > 1 && strcmp(argv[1], "--hyb") == 0) {
+        use_hyb = 1;
     }
 
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
 
-
     // Load providers
     OSSL_PROVIDER_load(NULL, "default");
-    if (use_pq) {
+    if (use_hyb) {
         if (!OSSL_PROVIDER_load(NULL, "oqsprovider")) {
             fprintf(stderr, "Failed to load oqsprovider\n");
             return 1;
@@ -30,7 +29,7 @@ int main(int argc, char **argv) {
     SSL_CTX *ctx = SSL_CTX_new(method);
 
     // Optional: select PQ group when in PQ mode
-    if (use_pq) {
+    if (use_hyb) {
         SSL_CTX_set1_groups_list(ctx, "p384_mlkem768");
     }
 
