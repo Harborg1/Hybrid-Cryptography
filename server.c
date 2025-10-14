@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 int main(int argc, char **argv) {
     int use_hyb = 0;
@@ -12,7 +13,7 @@ int main(int argc, char **argv) {
         use_hyb = 1;
     }
     printf("Mode: %s\n", use_hyb ? "HYBRID" : "CLASSICAL");
-
+    
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
@@ -97,10 +98,18 @@ int main(int argc, char **argv) {
     SSL_set_fd(ssl, client);
     printf("Waiting for TLS handshake...\n");
 
-    if (SSL_accept(ssl) <= 0) {
+    clock_t start = clock();
+
+    int handshake_result = SSL_accept(ssl);
+
+    clock_t end = clock();
+
+    if (handshake_result <= 0) {
         ERR_print_errors_fp(stderr);
     } else {
+        double elapsed = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.0;
         printf("TLS handshake successful\n");
+        printf("Handshake time: %.3f ms\n", elapsed);
         printf("Negotiated cipher: %s\n", SSL_get_cipher(ssl));
 
         int group_id = SSL_get_shared_group(ssl, 0);
