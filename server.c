@@ -134,12 +134,34 @@ int main(int argc, char **argv) {
     }
 
     char buffer[1024] = {0};
-    SSL_read(ssl, buffer, sizeof(buffer));
-    printf("Received: %s\n", buffer);
-    SSL_write(ssl, "Hello from server", 17);
 
-    printf("Press ENTER to close TLS connection (can read socket statistics before hand)");
-    // call "sudo ss -tinp '( sport = :1436 )'" in terinal to read socket data where 1436 is the port number
+    printf("Waiting for message from client...\n");
+
+    // measure time to receive message
+    clock_t start_recv = clock();
+    int bytes_read = SSL_read(ssl, buffer, sizeof(buffer));
+    clock_t end_recv = clock();
+
+    if (bytes_read > 0) {
+        double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
+        printf("Received: %s\n", buffer);
+        printf("Time to receive message: %.3f ms\n", recv_time);
+    } else {
+        printf("SSL_read failed.\n");
+        ERR_print_errors_fp(stderr);
+    }
+
+    // measure time to send reply
+    clock_t start_send = clock();
+    SSL_write(ssl, "Hello from server", 17);
+    clock_t end_send = clock();
+
+    double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
+    printf("Time to send reply: %.3f ms\n", send_time);
+
+
+    printf("Press ENTER to close TLS connection (you can read socket statistics before closing)");
+    // call "sudo ss -tinp '( sport = :4443 )'" in terinal to read socket data where 4443 is the port number
     getchar(); 
 
     SSL_free(ssl);

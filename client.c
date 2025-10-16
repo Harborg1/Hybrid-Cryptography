@@ -60,13 +60,26 @@ int main(int argc, char **argv) {
 
     if (SSL_connect(ssl) <= 0) {
         ERR_print_errors_fp(stderr);
-    } else {
+    } 
+    else {
         char msg[] = "Hello from client";
-        SSL_write(ssl, msg, strlen(msg));
-
         char buffer[1024] = {0};
+
+        // measure time to send message
+        clock_t start_send = clock();
+        SSL_write(ssl, msg, strlen(msg));
+        clock_t end_send = clock();
+        double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
+        printf("Time to send message: %.3f ms\n", send_time);
+
+        // measure time to receive reply
+        clock_t start_recv = clock();
         SSL_read(ssl, buffer, sizeof(buffer));
+        clock_t end_recv = clock();
+        double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
+
         printf("Received: %s\n", buffer);
+        printf("Time to receive reply: %.3f ms\n", recv_time);
     }
 
     SSL_free(ssl);
