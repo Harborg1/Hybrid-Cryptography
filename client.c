@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         clock_t end_send = clock();
         double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
         printf("Time to send message: %.3f ms\n", send_time);
-
+        
         // measure time to receive reply
         clock_t start_recv = clock();
         SSL_read(ssl, buffer, sizeof(buffer));
