@@ -255,7 +255,7 @@ openssl list -public-key-algorithms -provider oqsprovider
 cd /vagrant
 ```
 ---
-### 2. Generate RSA key
+### 2. Generate RSA key for authentication
 ```bash
    LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
   /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
@@ -263,15 +263,25 @@ cd /vagrant
   -days 365 -nodes \
   -subj "/CN=localhost"
 ```
+
+### 3. Generate a hybrid key of P-384 and ML-DSA-65 for authentication
+```bash
+LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
+/opt/openssl-3.5/bin/openssl req -new -x509 -newkey p384_mldsa65 \
+-keyout hybkey.pem -out hybcert.pem \
+-days 365 -nodes \
+-subj "/CN=localhost" \
+-provider oqsprovider -provider default
+```
+
 ---
 ### 4. Build the Code
 Run the make file. This will compile the server.c and client.c files automatically.
-'''bash
+```bash
 make
-'''
-In case the make file does not work, you can compile the server and client manually instead.
+```
+In case the make file does not work, you can compile the server and client manually instead in the vagrant folder.
 
-Compile the server.c and client.c files inside the vagrant folder:
 ```bash
 gcc server.c -o server \
   -I/opt/openssl-3.5/include \
@@ -329,13 +339,11 @@ cd /vagrant
 ### 7. View the amount of data sent over the connection
 Open a **third terminal**, navigate to the vagrant folder in the VM and run the command below
 ```bash
-sudo ss -tinp '( sport = :5003 )' 
+sudo ss -tinp '( sport = :4443 )' 
 ```
 The amount of data sent and recieved over the TLS connection will be shown in bytes.
 
-5003 is the port number in this case which is the default port number when it is not specified.
-
-
+4443 is the port number in this case which is the default port number when it is not specified.
 
 
 
