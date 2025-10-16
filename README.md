@@ -298,7 +298,8 @@ gcc client.c -o client \
 ```bash
 ls
 ```
-You should see that the server.c and client.c files are in the folder.
+
+You should see the compiled server and client binaries in the folder.
 
 ---
 ### 5. Run the Programs
