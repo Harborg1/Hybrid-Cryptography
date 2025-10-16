@@ -328,9 +328,9 @@ cd /vagrant
 
 ### 7. View the amount of data sent over the connection
 Open a **third terminal**, navigate to the vagrant folder in the VM and run the command below
-'''bash
+```bash
 sudo ss -tinp '( sport = :5003 )' 
-'''
+```
 The amount of data sent and recieved over the TLS connection will be shown in bytes.
 5003 is the port number in this case which is the default port number when it is not specified.
 
