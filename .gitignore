@@ -7,3 +7,5 @@ benchmark
 Vagrantfile
 hybrid_cert.pem
 hybrid_key.pem
+hybcert.pem
+hybkey.pem

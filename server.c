@@ -7,9 +7,52 @@
 #include <stdio.h>
 #include <time.h>
 
+void print_tcp_bytes_ss(int port_no)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd),
+             "ss -tinp '( sport = :%d )' 2>/dev/null | grep bytes_ | head -n1", port_no);
+
+    FILE *fp = popen(cmd, "r");
+    if (!fp) {
+        perror("popen(ss)");
+        return;
+    }
+
+    char line[512];
+    if (!fgets(line, sizeof(line), fp)) {
+        printf("No ss output found for port %d\n", port_no);
+        pclose(fp);
+        return;
+    }
+
+    int bytes_sent = 0;
+    int bytes_acked = 0;
+    int bytes_received = 0;
+
+    /* Flexible parsing: scan for all three possible counters */
+    char *p = line;
+    while ((p = strstr(p, "bytes_")) != NULL) {
+        if (sscanf(p, "bytes_sent:%d", &bytes_sent) == 1) {
+            // found bytes_sent
+        } else if (sscanf(p, "bytes_acked:%d", &bytes_acked) == 1) {
+            // found bytes_acked
+        } else if (sscanf(p, "bytes_received:%d", &bytes_received) == 1) {
+            // found bytes_received
+        }
+        p += 6; // move past "bytes_"
+    }
+    printf("Bytes sent: %d\n", bytes_acked);
+    printf("Bytes received: %d\n", bytes_received);
+    printf("Total bytes: %d\n", bytes_acked + bytes_received);
+    pclose(fp);
+}
+
 int main(int argc, char **argv) {
+    // we should proberly move these variables into a struct, which can then be used by both programs
     int use_hyb = 0;
     int port_no = 5003;
+    int only_connect = 0; // should the program terminate after establishing a secure connection
     if (argc == 2) {
         if (strcmp(argv[1], "--hyb") == 0) {
             use_hyb = 1;
@@ -79,7 +122,7 @@ int main(int argc, char **argv) {
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(4443);
+    addr.sin_port = htons(port_no);
     addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
@@ -94,7 +137,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    printf("Server listening on port 4443...\n");
+    printf("Server listening on port %d...\n", port_no);
 
     int client = accept(sockfd, NULL, NULL);
     if (client < 0) {
@@ -110,7 +153,7 @@ int main(int argc, char **argv) {
     clock_t start = clock();
 
     int handshake_result = SSL_accept(ssl);
-
+    printf("wass\n");
     clock_t end = clock();
     
     if (handshake_result <= 0) {
@@ -132,37 +175,38 @@ int main(int argc, char **argv) {
             printf("No shared group found.\n");
         }
     }
+    if (!only_connect) {
+        char buffer[1024] = {0};
+        printf("Waiting for message from client...\n");
 
-    char buffer[1024] = {0};
+        // measure time to receive message
+        clock_t start_recv = clock();
+        int bytes_read = SSL_read(ssl, buffer, sizeof(buffer));
+        clock_t end_recv = clock();
 
-    printf("Waiting for message from client...\n");
+        if (bytes_read > 0) {
+            double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
+            printf("Received: %s\n", buffer);
+            printf("Time to receive message: %.3f ms\n", recv_time);
+        } else {
+            printf("SSL_read failed.\n");
+            ERR_print_errors_fp(stderr);
+        }
 
-    // measure time to receive message
-    clock_t start_recv = clock();
-    int bytes_read = SSL_read(ssl, buffer, sizeof(buffer));
-    clock_t end_recv = clock();
+        // measure time to send reply
+        clock_t start_send = clock();
+        SSL_write(ssl, "Hello from server", 17);
+        clock_t end_send = clock();
 
-    if (bytes_read > 0) {
-        double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
-        printf("Received: %s\n", buffer);
-        printf("Time to receive message: %.3f ms\n", recv_time);
-    } else {
-        printf("SSL_read failed.\n");
-        ERR_print_errors_fp(stderr);
+        double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
+        printf("Time to send reply: %.3f ms\n", send_time);
+
     }
 
-    // measure time to send reply
-    clock_t start_send = clock();
-    SSL_write(ssl, "Hello from server", 17);
-    clock_t end_send = clock();
-
-    double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
-    printf("Time to send reply: %.3f ms\n", send_time);
-
-
-    printf("Press ENTER to close TLS connection (you can read socket statistics before closing)");
-    // call "sudo ss -tinp '( sport = :4443 )'" in terinal to read socket data where 4443 is the port number
-    getchar(); 
+    print_tcp_bytes_ss(port_no);
+    // printf("Press ENTER to close TLS connection and end program (you can read socket statistics before closing)");
+    // // call "sudo ss -tinp '( sport = :4443 )'" in terinal to read socket data where 4443 is the port number
+    // getchar();
 
     SSL_free(ssl);
     close(client);

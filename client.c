@@ -9,6 +9,7 @@
 int main(int argc, char **argv) {
     int use_hyb = 0;
     int port_no = 5003;
+    int only_connect = 0; // should the program terminate after establishing a secure connection
     if (argc == 2) {
         if (strcmp(argv[1], "--hyb") == 0) {
             use_hyb = 1;
@@ -47,40 +48,41 @@ int main(int argc, char **argv) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(4443);
+    addr.sin_port = htons(port_no);
     inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);
 
     if (connect(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("connect");
         return 1;
     }
-
     SSL *ssl = SSL_new(ctx);
     SSL_set_fd(ssl, sockfd);
-
     if (SSL_connect(ssl) <= 0) {
         ERR_print_errors_fp(stderr);
     } 
     else {
-        char msg[] = "Hello from client";
-        char buffer[1024] = {0};
+        if (!only_connect) {
+            char msg[] = "Hello from client";
+            char buffer[1024] = {0};
+            // measure time to send message
+            clock_t start_send = clock();
+            SSL_write(ssl, msg, strlen(msg));
+            clock_t end_send = clock();
+            double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
+            printf("Time to send message: %.3f ms\n", send_time);
+            
+            // measure time to receive reply
+            clock_t start_recv = clock();
+            SSL_read(ssl, buffer, sizeof(buffer));
+            clock_t end_recv = clock();
+            double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
 
-        // measure time to send message
-        clock_t start_send = clock();
-        SSL_write(ssl, msg, strlen(msg));
-        clock_t end_send = clock();
-        double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
-        printf("Time to send message: %.3f ms\n", send_time);
-        
-        // measure time to receive reply
-        clock_t start_recv = clock();
-        SSL_read(ssl, buffer, sizeof(buffer));
-        clock_t end_recv = clock();
-        double recv_time = ((double)(end_recv - start_recv) / CLOCKS_PER_SEC) * 1000.0;
-
-        printf("Received: %s\n", buffer);
-        printf("Time to receive reply: %.3f ms\n", recv_time);
+            printf("Received: %s\n", buffer);
+            printf("Time to receive reply: %.3f ms\n", recv_time);
+        }
     }
+    // give time for server to collect data before closing
+    sleep(1); 
 
     SSL_free(ssl);
     close(sockfd);
