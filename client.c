@@ -6,10 +6,47 @@
 #include <string.h>
 #include <stdio.h>
 
+
+int ssl_receive_file(SSL *ssl, FILE *fp) {
+    char buffer[16384];  // same chunk size as sender
+    int bytes_read;
+    int total_received = 0;
+
+    for (;;) {
+        bytes_read = SSL_read(ssl, buffer, sizeof(buffer));
+
+        if (bytes_read > 0) {
+            size_t written = fwrite(buffer, 1, bytes_read, fp);
+            if (written < (size_t)bytes_read) {
+                perror("File write error");
+                return -1;
+            }
+            total_received += bytes_read;
+        } else {
+            int err = SSL_get_error(ssl, bytes_read);
+
+            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+                // Non-blocking mode: retry later
+                continue;
+            } else if (err == SSL_ERROR_ZERO_RETURN) {
+                // Clean shutdown (EOF)
+                printf("SSL connection closed by peer\n");
+                break;
+            } else {
+                fprintf(stderr, "SSL_read failed: %d\n", err);
+                ERR_print_errors_fp(stderr);
+                return -1;
+            }
+        }
+    }
+    printf("Total bytes received: %d\n", total_received);
+    return 0;
+}
+
 int main(int argc, char **argv) {
+    int test = 2;
     int use_hyb = 0;
     int port_no = 5003;
-    int only_connect = 0; // should the program terminate after establishing a secure connection
     if (argc == 2) {
         if (strcmp(argv[1], "--hyb") == 0) {
             use_hyb = 1;
@@ -21,7 +58,6 @@ int main(int argc, char **argv) {
             use_hyb = 1;
         }
         port_no = atoi(argv[1]);
-
     }
 
     SSL_library_init();
@@ -61,7 +97,7 @@ int main(int argc, char **argv) {
         ERR_print_errors_fp(stderr);
     } 
     else {
-        if (!only_connect) {
+        if (test == 1) {
             char msg[] = "Hello from client";
             char buffer[1024] = {0};
             // measure time to send message
@@ -79,9 +115,20 @@ int main(int argc, char **argv) {
 
             printf("Received: %s\n", buffer);
             printf("Time to receive reply: %.3f ms\n", recv_time);
+        } else if (test == 2) {
+            FILE *file = fopen("enisa2.pdf", "wb");
+            if (!file) {
+                perror("fopen");
+                return 1;
+            }
+            if (ssl_receive_file(ssl, file) == 0) {
+                printf("File received successfully.\n");
+            } else {
+                printf("File receive failed.\n");
+            }
         }
     }
-    // give time for server to collect data before closing
+    // give time for server to collect socket data before closing connection
     sleep(1); 
 
     SSL_free(ssl);
