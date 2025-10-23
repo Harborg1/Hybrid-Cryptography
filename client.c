@@ -44,7 +44,7 @@ int ssl_receive_file(SSL *ssl, FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-    int test = 2;
+    int test = 1;
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
             printf("Received: %s\n", buffer);
             printf("Time to receive reply: %.3f ms\n", recv_time);
         } else if (test == 2) {
-            FILE *file = fopen("enisa2.pdf", "wb");
+            FILE *file = fopen("data/copys/test1copy.txt", "wb");
             if (!file) {
                 perror("fopen");
                 return 1;

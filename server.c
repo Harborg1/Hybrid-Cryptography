@@ -96,7 +96,7 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
 
 int main(int argc, char **argv) {
     // we should proberly move these variables into a struct, which can then be used by both programs
-    int test = 2; // 0 = onlt connect, 1 = short message, 2 = send file
+    int test = 1; // 0 = onlt connect, 1 = short message, 2 = send file "enisa.pdf"
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -247,7 +247,7 @@ int main(int argc, char **argv) {
         printf("Time to send reply: %.3f ms\n", send_time);
 
     } else if (test == 2) {
-        FILE *file = fopen("data/enisa.pdf", "rb");
+        FILE *file = fopen("data/test1.txt", "rb");
         ssl_send_file(ssl, file);
         sleep(1);
     }
