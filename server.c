@@ -55,13 +55,12 @@ void print_tcp_bytes_ss(int port_no)
 
 
 int ssl_send_file(SSL *ssl, FILE *fp) {
-    printf("sp");
     char buffer[16384]; // 16KB is a good chunk size (fits SSL record size)
     size_t bytes_read;
     int bytes_written;
     int total_written;
     int ret;
-
+    clock_t start_file_send = clock();
     while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
         total_written = 0;
         while (total_written < bytes_read) {
@@ -87,6 +86,10 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
         perror("File read error");
         return -1;
     }
+    clock_t end_file_send = clock();
+    double elapsed = ((double)(end_file_send - start_file_send) / CLOCKS_PER_SEC) * 1000.0;
+    printf("File transfer successful\n");
+    printf("File transfer time: %.3f ms\n", elapsed);
 
     return 0; // success
 }
@@ -244,20 +247,14 @@ int main(int argc, char **argv) {
         printf("Time to send reply: %.3f ms\n", send_time);
 
     } else if (test == 2) {
-        printf("sup");
-        FILE *file = fopen("data\\enisa.pdf", "rb");
-        if (ssl_send_file(ssl, file) == 0) {
-            printf("File sent successfully.\n");
-        } else {
-            printf("File send failed.\n");
-        }    
+        FILE *file = fopen("data/enisa.pdf", "rb");
+        ssl_send_file(ssl, file);
+        sleep(1);
     }
 
     print_tcp_bytes_ss(port_no);
-    // printf("Press ENTER to close TLS connection and end program (you can read socket statistics before closing)");
-    // // call "sudo ss -tinp '( sport = :4443 )'" in terinal to read socket data where 4443 is the port number
-    // getchar();
 
+    SSL_shutdown(ssl);  
     SSL_free(ssl);
     close(client);
     close(sockfd);
