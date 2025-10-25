@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 
-
 int ssl_receive_file(SSL *ssl, FILE *fp) {
     char buffer[16384];  // same chunk size as sender
     int bytes_read;
@@ -44,7 +43,7 @@ int ssl_receive_file(SSL *ssl, FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-    int test = 1;
+    int test = 0;
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {

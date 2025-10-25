@@ -53,7 +53,6 @@ void print_tcp_bytes_ss(int port_no)
     pclose(fp);
 }
 
-
 int ssl_send_file(SSL *ssl, FILE *fp) {
     char buffer[16384]; // 16KB is a good chunk size (fits SSL record size)
     size_t bytes_read;
@@ -96,7 +95,7 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
 
 int main(int argc, char **argv) {
     // we should proberly move these variables into a struct, which can then be used by both programs
-    int test = 1; // 0 = onlt connect, 1 = short message, 2 = send file "enisa.pdf"
+    int test = 0; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -158,6 +157,7 @@ int main(int argc, char **argv) {
         ERR_print_errors_fp(stderr);
         return 1;
     }
+    
 
     // Set up TCP socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
