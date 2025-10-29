@@ -43,7 +43,7 @@ int ssl_receive_file(SSL *ssl, FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-    int test = 0;
+    int test = 1;
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {

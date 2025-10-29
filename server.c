@@ -95,7 +95,7 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
 
 int main(int argc, char **argv) {
     // we should proberly move these variables into a struct, which can then be used by both programs
-    int test = 0; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
+    int test = 1; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -152,12 +152,11 @@ int main(int argc, char **argv) {
         printf("Hybrid group set: p384_mlkem768\n");
     }
     // Load certificate and private key (same files for both modes)
-    if (SSL_CTX_use_certificate_file(ctx, "cert.pem", SSL_FILETYPE_PEM) <= 0 ||
-        SSL_CTX_use_PrivateKey_file(ctx, "key.pem", SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_certificate_file(ctx, "hybrid_cert.pem", SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(ctx, "hybrid_key.pem", SSL_FILETYPE_PEM) <= 0) {
         ERR_print_errors_fp(stderr);
         return 1;
     }
-    
 
     // Set up TCP socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
