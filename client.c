@@ -43,7 +43,7 @@ int ssl_receive_file(SSL *ssl, FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-    int test = 1;
+    int test = 2;
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
             printf("Received: %s\n", buffer);
             printf("Time to receive reply: %.3f ms\n", recv_time);
         } else if (test == 2) {
-            FILE *file = fopen("data/copys/test1copy.txt", "wb");
+            FILE *file = fopen("data/copys/enisacopy.pdf", "wb");
             if (!file) {
                 perror("fopen");
                 return 1;
@@ -127,9 +127,8 @@ int main(int argc, char **argv) {
             }
         }
     }
-    // give time for server to collect socket data before closing connection
-    sleep(1); 
-
+    sleep(1); // give time for server to collect socket data before closing connection
+    SSL_shutdown(ssl);  
     SSL_free(ssl);
     close(sockfd);
     SSL_CTX_free(ctx);

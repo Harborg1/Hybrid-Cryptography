@@ -87,7 +87,6 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
     }
     clock_t end_file_send = clock();
     double elapsed = ((double)(end_file_send - start_file_send) / CLOCKS_PER_SEC) * 1000.0;
-    printf("File transfer successful\n");
     printf("File transfer time: %.3f ms\n", elapsed);
 
     return 0; // success
@@ -95,7 +94,7 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
 
 int main(int argc, char **argv) {
     // we should proberly move these variables into a struct, which can then be used by both programs
-    int test = 1; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
+    int test = 2; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
     int use_hyb = 0;
     int port_no = 5003;
     if (argc == 2) {
@@ -152,8 +151,8 @@ int main(int argc, char **argv) {
         printf("Hybrid group set: p384_mlkem768\n");
     }
     // Load certificate and private key (same files for both modes)
-    if (SSL_CTX_use_certificate_file(ctx, "hybrid_cert.pem", SSL_FILETYPE_PEM) <= 0 ||
-        SSL_CTX_use_PrivateKey_file(ctx, "hybrid_key.pem", SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_certificate_file(ctx, "cert.pem", SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(ctx, "key.pem", SSL_FILETYPE_PEM) <= 0) {
         ERR_print_errors_fp(stderr);
         return 1;
     }
@@ -246,14 +245,21 @@ int main(int argc, char **argv) {
         printf("Time to send reply: %.3f ms\n", send_time);
 
     } else if (test == 2) {
-        FILE *file = fopen("data/test1.txt", "rb");
-        ssl_send_file(ssl, file);
+        FILE *file = fopen("data/original/enisa.pdf", "rb");
+        if (ssl_send_file(ssl, file) == 0) {
+            printf("File transfer successful\n");
+        } else {
+            printf("File print failed\n");
+        }
         sleep(1);
     }
 
     print_tcp_bytes_ss(port_no);
 
-    SSL_shutdown(ssl);  
+    int ret = SSL_shutdown(ssl);
+    if (ret == 0) {
+        SSL_shutdown(ssl);  // wait for peer close_notify
+    }
     SSL_free(ssl);
     close(client);
     close(sockfd);

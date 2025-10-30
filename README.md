@@ -335,16 +335,6 @@ cd /vagrant
 - In the client terminal,  "Hello from server" will be printed.
 - In the server terminal, "Hello from client" will be printed.
 
----
-
-### 7. View the amount of data sent over the connection
-Open a **third terminal**, navigate to the vagrant folder in the VM and run the command below
-```bash
-sudo ss -tinp '( sport = :4443 )' 
-```
-The amount of data sent and recieved over the TLS connection will be shown in bytes.
-
-4443 is the port number in this case which is the default port number when it is not specified.
 
 
 
