@@ -10,8 +10,12 @@
 void print_tcp_bytes_ss(int port_no)
 {
     char cmd[128];
-    snprintf(cmd, sizeof(cmd),
-             "ss -tinp '( sport = :%d )' 2>/dev/null | grep bytes_ | head -n1", port_no);
+    snprintf(
+        cmd, 
+        sizeof(cmd),
+        "ss -tinp '( sport = :%d )' 2>/dev/null | grep bytes_ | head -n1", 
+        port_no
+    );
 
     FILE *fp = popen(cmd, "r");
     if (!fp) {
@@ -29,6 +33,7 @@ void print_tcp_bytes_ss(int port_no)
     int bytes_sent = 0;
     int bytes_acked = 0;
     int bytes_received = 0;
+    // printf(line);
 
     /* Flexible parsing: scan for all three possible counters */
     char *p = line;
@@ -48,11 +53,50 @@ void print_tcp_bytes_ss(int port_no)
     pclose(fp);
 }
 
+int ssl_send_file(SSL *ssl, FILE *fp) {
+    char buffer[16384]; // 16KB is a good chunk size (fits SSL record size)
+    size_t bytes_read;
+    int bytes_written;
+    int total_written;
+    int ret;
+    clock_t start_file_send = clock();
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
+        total_written = 0;
+        while (total_written < bytes_read) {
+            bytes_written = SSL_write(ssl, buffer + total_written, bytes_read - total_written);
+
+            if (bytes_written <= 0) {
+                int err = SSL_get_error(ssl, bytes_written);
+                if (err == SSL_ERROR_WANT_WRITE || err == SSL_ERROR_WANT_READ) {
+                    // Non-blocking retry
+                    continue;
+                } else {
+                    fprintf(stderr, "SSL_write failed: %d\n", err);
+                    ERR_print_errors_fp(stderr);
+                    return -1;
+                }
+            }
+
+            total_written += bytes_written;
+        }
+    }
+
+    if (ferror(fp)) {
+        perror("File read error");
+        return -1;
+    }
+    clock_t end_file_send = clock();
+    double elapsed = ((double)(end_file_send - start_file_send) / CLOCKS_PER_SEC) * 1000.0;
+    printf("File transfer time: %.3f ms\n", elapsed);
+
+    return 0; // success
+}
+
 int main(int argc, char **argv) {
     // we should proberly move these variables into a struct, which can then be used by both programs
+    int test = 2; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
     int use_hyb = 0;
     int port_no = 5003;
-    int only_connect = 0; // should the program terminate after establishing a secure connection
     if (argc == 2) {
         if (strcmp(argv[1], "--hyb") == 0) {
             use_hyb = 1;
@@ -153,7 +197,6 @@ int main(int argc, char **argv) {
     clock_t start = clock();
 
     int handshake_result = SSL_accept(ssl);
-    printf("wass\n");
     clock_t end = clock();
     
     if (handshake_result <= 0) {
@@ -175,7 +218,7 @@ int main(int argc, char **argv) {
             printf("No shared group found.\n");
         }
     }
-    if (!only_connect) {
+    if (test == 1) {
         char buffer[1024] = {0};
         printf("Waiting for message from client...\n");
 
@@ -201,13 +244,22 @@ int main(int argc, char **argv) {
         double send_time = ((double)(end_send - start_send) / CLOCKS_PER_SEC) * 1000.0;
         printf("Time to send reply: %.3f ms\n", send_time);
 
+    } else if (test == 2) {
+        FILE *file = fopen("data/original/enisa.pdf", "rb");
+        if (ssl_send_file(ssl, file) == 0) {
+            printf("File transfer successful\n");
+        } else {
+            printf("File print failed\n");
+        }
+        sleep(1);
     }
 
     print_tcp_bytes_ss(port_no);
-    // printf("Press ENTER to close TLS connection and end program (you can read socket statistics before closing)");
-    // // call "sudo ss -tinp '( sport = :4443 )'" in terinal to read socket data where 4443 is the port number
-    // getchar();
 
+    int ret = SSL_shutdown(ssl);
+    if (ret == 0) {
+        SSL_shutdown(ssl);  // wait for peer close_notify
+    }
     SSL_free(ssl);
     close(client);
     close(sockfd);
