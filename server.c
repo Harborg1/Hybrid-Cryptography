@@ -93,21 +93,41 @@ int ssl_send_file(SSL *ssl, FILE *fp) {
 }
 
 int main(int argc, char **argv) {
-    // we should proberly move these variables into a struct, which can then be used by both programs
-    int test = 2; // 0 = only connect, 1 = short message, 2 = send file "enisa.pdf"
+    // port_no, test, use_hyb
+    int test = 1; // 0 = only connect, 1 = short message, 2 = send file
     int use_hyb = 0;
     int port_no = 5003;
-    if (argc == 2) {
+    int arg;
+    if (argc == 2) { // 1 extra argument
         if (strcmp(argv[1], "--hyb") == 0) {
             use_hyb = 1;
         } else {
-            port_no = atoi(argv[1]);;
+            arg = atoi(argv[1]);
+            if (arg < 3) {
+                test = arg;
+            } else {
+                port_no = arg;
+            }
         }
     } else if (argc == 3) {
         if (strcmp(argv[2], "--hyb") == 0) {
             use_hyb = 1;
+            arg = atoi(argv[1]);
+            if (arg < 3) {
+                test = arg;
+            } else {
+                port_no = arg;
+            }
+        } else {
+            port_no = atoi(argv[1]);
+            test = atoi(argv[2]);
         }
+    } else if (argc == 4) {
         port_no = atoi(argv[1]);
+        test = atoi(argv[2]);
+        if (strcmp(argv[3], "--hyb") == 0) {
+            use_hyb = 1;
+        }
     }
     printf("Mode: %s\n", use_hyb ? "HYBRID" : "CLASSICAL");
     
