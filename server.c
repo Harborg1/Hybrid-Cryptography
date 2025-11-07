@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
         printf("Time to send reply: %.3f ms\n", send_time);
 
     } else if (test == 2) {
-        FILE *file = fopen("data/original/enisa.pdf", "rb");
+        FILE *file = fopen("data/original/ENISA.pdf", "rb");
         if (ssl_send_file(ssl, file) == 0) {
             printf("File transfer successful\n");
         } else {

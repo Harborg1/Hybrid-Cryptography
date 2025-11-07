@@ -10,7 +10,7 @@ int ssl_receive_file(SSL *ssl, FILE *fp) {
     char buffer[16384];  // same chunk size as sender
     int bytes_read;
     int total_received = 0;
-
+    
     for (;;) {
         bytes_read = SSL_read(ssl, buffer, sizeof(buffer));
 
@@ -135,7 +135,8 @@ int main(int argc, char **argv) {
             printf("Received: %s\n", buffer);
             printf("Time to receive reply: %.3f ms\n", recv_time);
         } else if (test == 2) {
-            FILE *file = fopen("data/copys/enisacopy.pdf", "wb");
+            // Make the new file and add it to the copies folder.
+            FILE *file = fopen("data/copies/ENISA_copy.pdf", "wb");
             if (!file) {
                 perror("fopen");
                 return 1;
