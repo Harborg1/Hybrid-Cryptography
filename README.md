@@ -3,8 +3,6 @@
 This README provides step-by-step instructions for installing and configuring the required dependencies to build and run a TLS client and server using OpenSSL 3.5. 
 The setup enables both classical and hybrid cryptography through the OQS provider.  
 
-**Estimated installation time:** 50–70 minutes
-
 ---
 
 ## Prerequisites
@@ -255,23 +253,13 @@ openssl list -public-key-algorithms -provider oqsprovider
 cd /vagrant
 ```
 ---
-### 2. Generate RSA key for authentication
+### 2. Generate RSA key and X509 certificate for authentication
 ```bash
    LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
   /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
   -keyout key.pem -out cert.pem \
   -days 365 -nodes \
   -subj "/CN=localhost"
-```
-
-### 3. Generate a hybrid key of P-384 and ML-DSA-65 for authentication
-```bash
-LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
-/opt/openssl-3.5/bin/openssl req -new -x509 -newkey p384_mldsa65 \
--keyout hybkey.pem -out hybcert.pem \
--days 365 -nodes \
--subj "/CN=localhost" \
--provider oqsprovider -provider default
 ```
 
 ---
@@ -302,33 +290,79 @@ ls
 You should see the compiled server and client binaries in the folder.
 
 ---
-### 5. Run the Programs
+##  Run the tests
+
 Open **two terminals**:
 
-**Terminal 1 (Server):**
-Navigate to the project folder and run
+Inside the project folder, login to the VM
 ```bash
 vagrant ssh
 ```
-Then run the server.
+
+Go into the vagrant folder
+
 ```bash
 cd /vagrant
-./server
 ```
+
+
+### 1. Select test configuration
+
+There are 3 types of tests to try out.
+
+The firs test establishes a TLS connection between client and server.
+
+The second sends a simple Hello message between client and server.
+
+The third sends the ENISA recommendations file from the server to the client.
+
+#### 1.1 TLS connection 
+To make the TLS connection, run
+```bash
+./server <port-number> 0
+```
+in **Terminal 1 (Server):** where <port-number> is some port number, e.g 5000 and 0 indicates that we 
 
 **Terminal 2 (Client):**
-Navigate to the project folder and run
+Run the client.
 ```bash
-vagrant ssh
-```
-Then run the client.
-```bash
-cd /vagrant
-./client
+./client <port-number> 0
 ```
 
+#### 1.2 Hello Message
+To make the Hello Message, run
+```bash
+./server <port-number> 1
+```
+in **Terminal 1 (Server):** where <port-number> is some port number, e.g 5000 and 0 indicates that we 
+
+**Terminal 2 (Client):**
+Run the client.
+```bash
+./client <port-number> 1
+```
+
+
+#### 1.3 File Transfer
+To make the File transfer, run
+```bash
+./server <port-number> 2
+```
+in **Terminal 1 (Server):** where <port-number> is some port number, e.g 5000 and 0 indicates that we 
+
+**Terminal 2 (Client):**
+Run the client.
+```bash
+./client <port-number> 2
+```
+
+
+
+
+
+
 ---
-### 6. Testing the Connection
+### 1. Testing the Connection
 - First run the server. It will wait for a client connection.  
 - Then run the client. It will establish a TLS 1.3 connection with the server.  
 - Both programs should print messages showing that the TLS handshake succeeded.
