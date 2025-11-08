@@ -309,11 +309,11 @@ cd /vagrant
 
 There are 3 types of tests you can run:
 
-1. TLS connection between client and server
+(0) TLS connection between client and server
 
-2. Hello message exchange
+(1) Hello message exchange
 
-3. File transfer of ENISA recommendations pdf from server to client
+(2) File transfer of ENISA recommendations pdf from server to client
 
 ### 2. Running the tests
 
@@ -322,16 +322,17 @@ All 3 tests use the same command structure on both the server and client sides.
 On the server side, run:
 
 ```bash
-./server <PORT-NUMBER> <TEST-TYPE >
+./server <PORT-NUMBER> <TEST-TYPE> [--hyb]
 ```
-
 
 On the client side, run:
 
 ```bash
-./client <PORT-NUMBER> <TEST-TYPE>
+./client <PORT-NUMBER> <TEST-TYPE> [--hyb]
 ```
 where PORT-NUMBER specifies the port used for establishing the TLS connection and TEST-TYPE is either 0,1, or 2.
+The last arguemnt --hyb is optional and it makes the program select the hybrid key exchange group P384_ML-KEM-768 from the oqs provider.
+If the --hyb argument is omitted, the program uses the classic key exchange group P384.
 
 #### 1.1 TLS connection 
 To establish the TLS connection, run
@@ -339,7 +340,7 @@ To establish the TLS connection, run
 ./server <PORT-NUMBER> 0
 ```
 in **Terminal 1 (Server):** where the first argument is some port number, e.g 5000 and 0 indicates that we are
-running test option 1 , i.e. establishing a TLS connection between client and server.
+running test option 0 , i.e. establishing a TLS connection between client and server.
 
 **Terminal 2 (Client):**
 Run the client.
@@ -353,7 +354,7 @@ To make the Hello Message, run
 ./server <PORT-NUMBER> 1
 ```
 in **Terminal 1 (Server):** where 1 indicates that we are running test
-option 2, i.e. the Hello Message exchange.
+option 1, i.e. the Hello Message exchange.
 
 **Terminal 2 (Client):**
 Run the client.
@@ -366,7 +367,7 @@ To make the file transfer, run
 ```bash
 ./server <PORT-NUMBER> 2
 ```
-in **Terminal 1 (Server):** where 2 indicates that we are running test option 3,
+in **Terminal 1 (Server):** where 2 indicates that we are running test option 2,
 i.e. the transfer of the ENISA file from the server to the client.
 
 **Terminal 2 (Client):**
@@ -379,7 +380,7 @@ Run the client.
 - First run the server. It will wait for a client connection.  
 - Use the same port number in both terminals.
 - Change the last argument (0, 1, or 2) to select the test type.
-
+- An optipnal argument --hyb can be added at the end to select hybrid mode.
 
 
 
