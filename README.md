@@ -1,9 +1,7 @@
 # Hybrid Cryptography Project
 
-This README provides step-by-step instructions for installing and configuring the required dependencies to build and run a TLS client and server using OpenSSL 3.5. 
-The setup enables both classical and hybrid cryptography through the OQS provider.  
-
-**Estimated installation time:** 50–70 minutes
+This README provides step-by-step instructions for installing and configuring the dependencies required to build and run a TLS 1.3 connection between a client and a server using OpenSSL 3.5.
+The setup supports both classical and hybrid cryptography through the OQS provider.
 
 ---
 
@@ -246,8 +244,7 @@ Providers:
 openssl list -public-key-algorithms -provider oqsprovider
 ```
 
-
-## Connect client and server
+## Generate key exchange files and compile the server- and client code.
 
 ### 1. Navigate to vagrant folder
 
@@ -255,23 +252,13 @@ openssl list -public-key-algorithms -provider oqsprovider
 cd /vagrant
 ```
 ---
-### 2. Generate RSA key for authentication
+### 2. Generate RSA key and X509 certificate for authentication
 ```bash
    LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
   /opt/openssl-3.5/bin/openssl req -x509 -newkey rsa:3072 \
   -keyout key.pem -out cert.pem \
   -days 365 -nodes \
   -subj "/CN=localhost"
-```
-
-### 3. Generate a hybrid key of P-384 and ML-DSA-65 for authentication
-```bash
-LD_LIBRARY_PATH=/opt/openssl-3.5/lib64 \
-/opt/openssl-3.5/bin/openssl req -new -x509 -newkey p384_mldsa65 \
--keyout hybkey.pem -out hybcert.pem \
--days 365 -nodes \
--subj "/CN=localhost" \
--provider oqsprovider -provider default
 ```
 
 ---
@@ -302,39 +289,96 @@ ls
 You should see the compiled server and client binaries in the folder.
 
 ---
-### 5. Run the Programs
+##  Run the tests
+
 Open **two terminals**:
 
-**Terminal 1 (Server):**
-Navigate to the project folder and run
+Inside the project folder, login to the VM
 ```bash
 vagrant ssh
 ```
-Then run the server.
+
+Go into the vagrant folder
+
 ```bash
 cd /vagrant
-./server
 ```
+
+
+### 1. Select test configuration
+
+There are 3 types of tests you can run:
+
+1. TLS connection between client and server
+
+2. Hello message exchange
+
+3. File transfer of ENISA recommendations pdf from server to client
+
+### 2. Running the tests
+
+All 3 tests use the same command structure on both the server and client sides.
+
+On the server side, run:
+
+```bash
+./server <PORT-NUMBER> <TEST-TYPE >
+```
+
+
+On the client side, run:
+
+```bash
+./client <PORT-NUMBER> <TEST-TYPE>
+```
+where PORT-NUMBER specifies the port used for establishing the TLS connection and TEST-TYPE is either 0,1, or 2.
+
+#### 1.1 TLS connection 
+To establish the TLS connection, run
+```bash
+./server <PORT-NUMBER> 0
+```
+in **Terminal 1 (Server):** where the first argument is some port number, e.g 5000 and 0 indicates that we are
+running test option 1 , i.e. establishing a TLS connection between client and server.
 
 **Terminal 2 (Client):**
-Navigate to the project folder and run
+Run the client.
 ```bash
-vagrant ssh
-```
-Then run the client.
-```bash
-cd /vagrant
-./client
+./client <PORT-NUMBER> 0
 ```
 
+#### 1.2 Hello Message
+To make the Hello Message, run
+```bash
+./server <PORT-NUMBER> 1
+```
+in **Terminal 1 (Server):** where 1 indicates that we are running test
+option 2, i.e. the Hello Message exchange.
+
+**Terminal 2 (Client):**
+Run the client.
+```bash
+./client <PORT-NUMBER> 1
+```
+
+#### 1.3 File Transfer
+To make the file transfer, run
+```bash
+./server <PORT-NUMBER> 2
+```
+in **Terminal 1 (Server):** where 2 indicates that we are running test option 3,
+i.e. the transfer of the ENISA file from the server to the client.
+
+**Terminal 2 (Client):**
+Run the client.
+```bash
+./client <PORT-NUMBER> 2
+```
 ---
-### 6. Testing the Connection
+# Testing the Connection
 - First run the server. It will wait for a client connection.  
-- Then run the client. It will establish a TLS 1.3 connection with the server.  
-- Both programs should print messages showing that the TLS handshake succeeded.
-- In the client terminal,  "Hello from server" will be printed.
-- In the server terminal, "Hello from client" will be printed.
-
+- Use the same port number in both terminals.
+- Change the last argument (0, 1, or 2) to select the test type.
 
 
 
