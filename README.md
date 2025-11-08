@@ -322,7 +322,7 @@ All 3 tests use the same command structure on both the server and client sides.
 On the server side, run:
 
 ```bash
-./server <PORT-NUMBER> <TEST-TYPE > [--hyb]
+./server <PORT-NUMBER> <TEST-TYPE> [--hyb]
 ```
 
 On the client side, run:
